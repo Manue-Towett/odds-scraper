@@ -1,0 +1,2 @@
+# odds-scraper
+Scrape odds
