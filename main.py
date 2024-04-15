@@ -1,5 +1,6 @@
 import re
 import json
+import uuid
 import threading
 import dataclasses
 from queue import Queue
@@ -33,8 +34,14 @@ class Game:
     season_year: int
     home_team: Optional[str] = None
     home_team_abbr: Optional[str] = None
+    home_team_short_name: Optional[str] = None
+    home_team_logo: Optional[str] = None
+    home_team_color: Optional[str] = None
     away_team: Optional[str] = None
     away_team_abbr: Optional[str] = None
+    away_team_short_name: Optional[str] = None
+    away_team_color: Optional[str] = None
+    away_team_logo: Optional[str] = None
     home_score: Optional[str] = None
     away_score: Optional[str] = None
     venue: Optional[str] = None
@@ -151,6 +158,10 @@ class ESPNScraper:
                             if competitor["isHome"]:
                                 game.home_team = competitor["displayName"]
                                 game.home_team_abbr = competitor["abbrev"]
+                                game.home_team_logo = competitor["logo"]
+                                game.home_team_color = competitor["teamColor"]
+                                game.home_team_short_name = competitor["shortDisplayName"]
+                                
                                 try:
                                     game.home_score = competitor["score"]
                                 except:
@@ -158,6 +169,10 @@ class ESPNScraper:
                             else:
                                 game.away_team = competitor["displayName"]
                                 game.away_team_abbr = competitor["abbrev"]
+                                game.away_team_logo = competitor["logo"]
+                                game.away_team_color = competitor["teamColor"]
+                                game.away_team_short_name = competitor["shortDisplayName"]
+
                                 try:
                                     game.away_score = competitor["score"]
                                 except:
@@ -184,6 +199,16 @@ class ESPNScraper:
             self.__extract_odds(response, game)
 
             self.queue.task_done()
+    
+    def get_logo(self, url: str) -> str:
+        response = self.__request(url)
+
+        image_name = f"{uuid.uuid4().__str__()}.{url.split('.')[-1]}"
+
+        with open(image_name, "wb") as f:
+            f.write(response.content)
+        
+        return image_name
 
     def run(self, league: str) -> None:
         url = SCEDULE_URL.format(league)
